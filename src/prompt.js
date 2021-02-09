@@ -15,6 +15,87 @@ $(document).ready(function() {
         e.preventDefault();
     });
 
+    // prompt zone field: string with area name
+    function promptZone(b) {
+        var $row = $('#pl-zone');
+
+        // Zone is unchanged since last prompt.
+        if (b.zone === undefined)
+            return;
+        // Zone is now hidden.
+        if (b.zone === "none") {
+            $row.hide();
+            return;
+        }
+
+        // Display zone name.
+        $row.show();
+        $row.find('span').text(b.zone);
+    }
+
+    // prompt room field: string with room name
+    function promptRoom(b) {
+        var $row = $('#pl-room');
+
+        // Room is unchanged since last prompt.
+        if (b.room === undefined)
+            return;
+        // Room is now hidden.
+        if (b.room === "none") {
+            $row.hide();
+            return;
+        }
+
+        // Display room name.
+        $row.show();
+        $row.find('span').text(b.room);
+    }
+
+    // prompt exits fields: e - visible exits, h - hidden exits (perception),
+    // l - language (r, e)
+    function promptExits(b) {
+        var $row = $('#pl-exits');
+
+        // Exits are unchanged since last prompt.
+        if (b.exits === undefined)
+            return;
+        // Exits are now hidden.
+        if (b.exits === "none") {
+            $row.hide();
+            return;
+        }
+
+        // Display visible and hidden exits.
+        $row.show();
+
+        function markExit(ex_ru, ex_en) {
+            var exit = ex_en.toLowerCase();
+            var $node = $row.find('#ple-' + exit);
+            // See if this exit letter is among hidden exits.
+            var hidden = b.exits.h.indexOf(exit) !== -1;
+            // See if this exit letter is among visible exits.
+            var visible = b.exits.e.indexOf(exit) !== -1;
+
+            $node.removeClass();
+            // If found anywhere, draw a letter of selected language, otherwise a dot.
+            if (hidden || visible) {
+                $node.text(b.exits.l === 'r' ? ex_ru : ex_en);
+            } else {
+                $node.text("\u00B7");
+            }
+            // Mark hidden exits with default color, other exits with bright blue.
+            if (!hidden)
+                $node.addClass('fg-ansi-bright-color-6');
+        }
+
+        markExit('С', 'N');
+        markExit('В', 'E');
+        markExit('Ю', 'S');
+        markExit('З', 'W');
+        markExit('О', 'D');
+        markExit('П', 'U');
+    }
+
     // prompt sector fields: s - sector type, l - light
     function promptSector(b) {
         // Later if needed. Showing sector type everywhere will discover a lot of funny things.
@@ -82,20 +163,20 @@ $(document).ready(function() {
             'e': 'Зло', 'g': 'Добро', 'u': 'Нежить', 'm': 'Магия', 'o': 'Диагн', 'l': 'Жизнь', 'r': 'Инфра' };
         drawAffectBlock(b.det, '#pa-detects', 'Обнар', dnames, '2');
 
-        var tnames = {'i':'Невид','h':'Скрыт','F':'Спрят','I':'УНевд','s':'Подкр','f':'Полет','p':'Прозр','m':'МБлок','c':'Камуфл'};
+        var tnames = {'i':'Невид','h':'Скрыт','F':'Спрят','I':'УНевд','s':'Подкр','f':'Полет','p':'Прозр','m':'МБлок'};
         drawAffectBlock(b.trv, '#pa-travel', 'Трансп', tnames, '2');
 
         var enames = { 'r': 'Реген','h':'Ускор','g':'ГигСил','l':'Обуч', 'b':'Благос','f':'Неист','B':'Блгсть','i':'Вдохн','c':'Спокой',
-                      'C':'Концен','z':'Берсрк','w':'Клич','F':'Лес','m':'МагФок'};
+                      'C':'Концен','z':'Берсрк','w':'Клич','F':'Лес','m':'МагФок','t':'Тигр','v':'Вампир'};
         drawAffectBlock(b.enh, '#pa-enhance', 'Усилен', enames, '2');
 
         var pnames = { 'z':'Звезд','s':'ЗащСвя','d':'ТАура','p':'ЗащЩит','e':'Зло','g':'Добро','m':'Заклин',
         'P':'Молит','n':'Негат','a':'Броня','A':'УлБрон','S':'Щит','D':'КжДрак','k':'КамКж','r':'СКамн','c':'Холод','h':'Жар',
-        'b':'ЛМыш','F': 'Немощь','E':'Выносл','R':'Радуга','M':'Мантия','Z':'Себат'};
+        'b':'ЛМыш','F': 'Немощь','E':'Выносл','R':'Радуга','M':'Мантия','Z':'Себат', 'B':'ДревКж'};
         drawAffectBlock(b.pro, '#pa-protect', 'Защита', pnames, '2');
 
         var mnames = {'b': 'Слеп','p':'Яд','P':'Чума','C':'Гниени','f':'ОгФей','W':'Очаров','c':'Прокл','w':'Слабо',
-        's':'Замедл','S':'Крик','B':'ЖажКрв','T':'Оглуш','i':'НетРук','I':'Стрела','j':'Сосуд','a':'Анафем'};
+        's':'Замедл','S':'Крик','B':'ЖажКрв','T':'Оглуш','i':'НетРук','I':'Стрела','j':'Сосуд','a':'Анафем','e':'Паут','E':'Терн','r':'КНож','n':'Нервы','y':'Укус','A':'Шипы','l':'Сон'};
         drawAffectBlock(b.mal, '#pa-malad', 'Отриц', mnames, '1');
 
         var cnames = {'r':'Сопрот','s':'Спелба','B':'ЖажКрв','b':'Повязк','t':'Трофей','T':'Зрение','d':'ОбнЛов','e':'Лев','p':'Предот','f':'Трансф',
@@ -297,6 +378,10 @@ $(document).ready(function() {
 
         // Handle all prompt fields.
         promptGroup(b);
+        promptZone(b);
+        promptRoom(b);
+        promptExits(b);
+        promptSector(b);
         promptAffects(b);
         promptWho(b);
         promptParams(b);
